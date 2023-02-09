@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Open AI | URL Query</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../static/assets/css/style.css">
+</head>
+
+<body>
+    <div class="main">
+        <div class="maindiv">
+            <p class="Paraphraser">
+                URL Query
+            </p>
+        </div>
+    </div>
+    <div class="block1">
+        <div class="secondmain">
+            <div class="thirdmain">
+                <!-- Create an input for url -->
+                <input class="input1" type="url" id="url" placeholder="https://">
+                <button id="crawl-btn" onclick="crawl_url()" class="btn2" disabled>
+                    <i class="fa fa-search">Submit</i>
+                </button>
+            </div>
+            <div class="maininput">
+                <textarea class="textarea-custom" id="text-before-phrase" style="border-right: 1px solid #e0e0e0" ;
+                    disabled placeholder="How May I Help You?"></textarea>
+                <textarea class="textarea-custom" id="text-after-phrase" disabled></textarea>
+            </div>
+            <div class="bt1-parent center">
+                <button id="process-btn" class="btn1" disabled onclick="process_text()">Query</button>
+            </div>
+        </div>
+    </div>
+    <script src="../static/assets/js/main.js"></script>
+</body>
+
+</html>
