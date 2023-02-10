@@ -4,15 +4,29 @@ from urllib.parse import urlparse
 from web_qa2 import crawl, process, tokenize, answer_question
 from flask import Flask, request, session, render_template, jsonify
 from pandas import read_json
+#from flask_sqlalchemy import SQLAlchemy
+#from flask_migrate import Migrate
+import psycopg2
 
 from dotenv import load_dotenv
 load_dotenv()
 
+url = urlparse.urlparse(os.environ['DATABASE_URL'])
+dbname = url.path[1:]
+user = url.username
+password = url.password
+host = url.hostname
+port = url.port
+
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 app.secret_key = os.environ.get("SECRET_KEY")
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://khzjgfjukljxhl:84d6fc54ccf830b387f54d8cf0ca752653397c224d8b2789412190536e486758@ec2-3-209-124-113.compute-1.amazonaws.com:5432/d2si0e1uqohc5h'
 
 logger = logging.getLogger(__name__)
+
+#db = SQLAlchemy(app)
+#migrate = Migrate(app, db)
 
 
 @app.route('/')
@@ -99,5 +113,27 @@ def question():
     response_object["data"] = {
         "answer": answer_question(df, question=question)
     }
+
+    conn = psycopg2.connect(
+                dbname=dbname,
+                user=user,
+                password=password,
+                host=host,
+                port=port
+                )
+
+    # Open a cursor to perform database operations
+    cur = conn.cursor()
+    cur.execute('INSERT INTO qa2 (URL,question,answer)'
+                'VALUES (%s, %s, %s)',
+                (full_url,
+                question,
+                response_object["data"]["answer"])
+                )
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
 
     return jsonify(response_object), 200
