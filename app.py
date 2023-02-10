@@ -11,12 +11,12 @@ import psycopg2
 from dotenv import load_dotenv
 load_dotenv()
 
-url = urlparse(os.environ['DATABASE_URL'])
-dbname = url.path[1:]
-user = url.username
-password = url.password
-host = url.hostname
-port = url.port
+# url = urlparse(os.environ['DATABASE_URL'])
+# dbname = url.path[1:]
+# user = url.username
+# password = url.password
+# host = url.hostname
+# port = url.port
 
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
@@ -114,26 +114,26 @@ def question():
         "answer": answer_question(df, question=question)
     }
 
-    conn = psycopg2.connect(
-                dbname=dbname,
-                user=user,
-                password=password,
-                host=host,
-                port=port
-                )
+    # conn = psycopg2.connect(
+    #             dbname=dbname,
+    #             user=user,
+    #             password=password,
+    #             host=host,
+    #             port=port
+    #             )
 
-    # Open a cursor to perform database operations
-    cur = conn.cursor()
-    cur.execute('INSERT INTO qa2 (URL,question,answer)'
-                'VALUES (%s, %s, %s)',
-                (full_url,
-                question,
-                response_object["data"]["answer"])
-                )
+    # # Open a cursor to perform database operations
+    # cur = conn.cursor()
+    # cur.execute('INSERT INTO qa2 (URL,question,answer)'
+    #             'VALUES (%s, %s, %s)',
+    #             (full_url,
+    #             question,
+    #             response_object["data"]["answer"])
+    #             )
 
-    conn.commit()
+    # conn.commit()
 
-    cur.close()
-    conn.close()
+    # cur.close()
+    # conn.close()
 
     return jsonify(response_object), 200
