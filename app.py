@@ -124,7 +124,7 @@ def question():
 
     # Open a cursor to perform database operations
     cur = conn.cursor()
-    cur.execute('INSERT INTO qa2 (URL,question,answer)'
+    cur.execute('INSERT INTO qa2 (link,question,answer)'
                 'VALUES (%s, %s, %s)',
                 (full_url,
                 question,
