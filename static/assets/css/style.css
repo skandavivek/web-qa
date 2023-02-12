@@ -75,7 +75,7 @@ body {
   font-weight: bold;
   color: white;
   border: none;
-  width: 8%;
+  width: 20%;
   cursor: pointer;  
 }
 .btn2:hover {
@@ -145,7 +145,6 @@ body {
   width: 100%;
   font-size: 1.0rem;
   font-weight: medium;
-  padding-left: 10px;
 }
 .shorten {
   font-size: 15px;
