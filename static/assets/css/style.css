@@ -4,7 +4,9 @@ body {
 }
 .block1 {
   margin-top: 3%;
-  width: 100%;
+  width: 60%;
+  margin-left: auto;
+  margin-right: auto;
   height: 100%;
   background-color: #efefef;
   /* shadow */

@@ -1,7 +1,7 @@
 import os
 import logging
 from urllib.parse import urlparse
-from web_qa2 import crawl, process, tokenize, answer_question
+from web_qa2 import crawls, process, tokenize, answer_question
 from flask import Flask, request, session, render_template, jsonify
 from pandas import read_json
 #from flask_sqlalchemy import SQLAlchemy
@@ -11,17 +11,16 @@ import psycopg2
 from dotenv import load_dotenv
 load_dotenv()
 
-url = urlparse(os.environ['DATABASE_URL'])
-dbname = url.path[1:]
-user = url.username
-password = url.password
-host = url.hostname
-port = url.port
+# url = urlparse(os.environ['DATABASE_URL'])
+# dbname = url.path[1:]
+# user = url.username
+# password = url.password
+# host = url.hostname
+# port = url.port
 
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 app.secret_key = os.environ.get("SECRET_KEY")
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://khzjgfjukljxhl:84d6fc54ccf830b387f54d8cf0ca752653397c224d8b2789412190536e486758@ec2-3-209-124-113.compute-1.amazonaws.com:5432/d2si0e1uqohc5h'
 
 logger = logging.getLogger(__name__)
 
@@ -42,23 +41,27 @@ def crawl_url():
     }
 
     post_data = request.get_json()
+    #print(post_data)
     if not post_data:
         return jsonify(response_object), 200
 
     full_url = post_data.get("url")
     if not full_url:
-        response_object["message"] = "url is required"
+        response_object["message"] = "url or text is required"
         return jsonify(response_object), 200
 
-    crawl(full_url)
-    domain = urlparse(full_url).netloc
-    process(domain)
+    if full_url.startswith('http'):
+        crawls(full_url)
+        domain = full_url.replace('/','').replace(':','')
+        process(domain)
+    else:
+        domain = full_url[:10]
 
     max_tokens = os.environ.get("MAX_TOKENS")
     api_key = os.environ.get("OPENAI_API_KEY")
     logger.info(f"max_tokens: {max_tokens}")
 
-    df = tokenize(api_key, int(max_tokens))
+    df = tokenize(full_url, api_key, int(max_tokens))
 
     # store the dataframe as json file
     file_name = f"{domain}.json"
@@ -114,26 +117,26 @@ def question():
         "answer": answer_question(df, question=question)
     }
 
-    conn = psycopg2.connect(
-                dbname=dbname,
-                user=user,
-                password=password,
-                host=host,
-                port=port
-                )
+    # conn = psycopg2.connect(
+    #             dbname=dbname,
+    #             user=user,
+    #             password=password,
+    #             host=host,
+    #             port=port
+    #             )
 
-    # Open a cursor to perform database operations
-    cur = conn.cursor()
-    cur.execute('INSERT INTO qa2 (link,question,answer)'
-                'VALUES (%s, %s, %s)',
-                (full_url,
-                question,
-                response_object["data"]["answer"])
-                )
+    # # Open a cursor to perform database operations
+    # cur = conn.cursor()
+    # cur.execute('INSERT INTO qa2 (URL,question,answer)'
+    #             'VALUES (%s, %s, %s)',
+    #             (full_url,
+    #             question,
+    #             response_object["data"]["answer"])
+    #             )
 
-    conn.commit()
+    # conn.commit()
 
-    cur.close()
-    conn.close()
+    # cur.close()
+    # conn.close()
 
     return jsonify(response_object), 200

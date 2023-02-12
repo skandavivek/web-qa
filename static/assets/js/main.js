@@ -14,9 +14,9 @@ document.getElementById("url").addEventListener("keyup", function (event) {
   if (validate_url(event.target.value)) {
     document.getElementById("crawl-btn").disabled = false;
   } else {
-    document.getElementById("crawl-btn").disabled = true;
-    document.getElementById("process-btn").disabled = true;
-    document.getElementById("text-before-phrase").disabled = true;
+    document.getElementById("crawl-btn").disabled = false;
+    document.getElementById("process-btn").disabled = false;
+    document.getElementById("text-before-phrase").disabled = false;
   }
 
   if (previous_url === event.target.value) {
@@ -29,10 +29,10 @@ function crawl_url() {
 
   let value = url.trim();
 
-  if (!validate_url(value)) {
-    alert("Please enter a valid URL");
-    return;
-  }
+  // if (!validate_url(value)) {
+  //   alert("Please enter a valid URL");
+  //   return;
+  // }
 
   document.getElementById("crawl-btn").disabled = true;
 

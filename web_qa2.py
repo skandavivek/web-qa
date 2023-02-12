@@ -112,11 +112,11 @@ def get_domain_hyperlinks(local_domain: str, url: str) -> list:
 # Step 4
 ################################################################################
 
-def crawl(url: str, max_pages: int = 50, hyperlinks: bool = False) -> set:
+def crawls(url: str, max_pages: int = 50, hyperlinks: bool = False) -> set:
     """ Function to crawl a website and save the text from each page to a text file """
 
     # Parse the URL and get the domain
-    local_domain = urlparse(url).netloc
+    local_domain = url.replace('/','').replace(':','')
 
     # Create a queue to store the URLs to crawl
     queue = deque([url])
@@ -256,13 +256,16 @@ def split_into_many(text: str, tokenizer: tiktoken.Encoding, max_tokens: int = 1
     return chunks
 
 
-def tokenize(api_key: str, max_tokens: int = 1024) -> pd.DataFrame:
+def tokenize(full_url, api_key: str, max_tokens: int = 1024) -> pd.DataFrame:
     """ Function to split the text into chunks of a maximum number of tokens """
 
     # Load the cl100k_base tokenizer which is designed to work with the ada-002 model
     tokenizer = tiktoken.get_encoding("cl100k_base")
 
-    df = pd.read_csv('processed/scraped.csv', index_col=0)
+    if full_url.startswith('http'):
+        df = pd.read_csv('processed/scraped.csv', index_col=0)
+    else:
+        df=pd.DataFrame(['0',full_url]).T
     df.columns = ['title', 'text']
 
     # Tokenize the text and save the number of tokens to a new column
