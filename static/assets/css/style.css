@@ -166,11 +166,29 @@ body {
   height: 100%;
   padding: 10px;
 }
-.button {
+.buttona {
   display: inline-block;
+  margin-top:80px;
   padding: 10px 20px;
   text-align: center;
-  /* display: flex; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 10%;  
+  margin-left: auto;
+  margin-right: auto;
+  text-decoration: none;
+  color: #ffffff;
+  background-color: #7aa8b7;
+  border-radius: 6px;
+  outline: none;
+}
+.buttonb {
+  display: inline-block;
+  margin-top:10px;
+  padding: 10px 20px;
+  text-align: center;
+  display: flex;
   justify-content: center;
   align-items: center;
   width: 10%;  
@@ -183,11 +201,12 @@ body {
   outline: none;
 }
 .center2 {
-  margin: auto;
+  margin-left: auto;
+  margin-right: auto;  
   width: 100%;
   padding: 100px;
-  /* display: flex; */
+  display: flex;
   justify-content: center;
-  margin-top:0px;
-  margin-left:470px;
+  /* margin-top:0px;
+  margin-left:470px; */
 }
