@@ -58,7 +58,7 @@ def crawl_url():
         domain = full_url[:10]
 
     max_tokens = os.environ.get("MAX_TOKENS")
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ['OPENAI_KEYV']
     logger.info(f"max_tokens: {max_tokens}")
 
     df = tokenize(full_url, api_key, int(max_tokens))
