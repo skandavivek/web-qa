@@ -119,6 +119,9 @@ def question():
     }
 
     df_text=pd.read_csv('processed/scraped.csv')
+    text_d=[]
+    if full_url.startswith('http'):
+        text_d=df_text.iloc[0]['text']
     conn = psycopg2.connect(
                 dbname=dbname,
                 user=user,
@@ -133,7 +136,7 @@ def question():
                 'VALUES (%s, %s, %s, %s)',
                 (full_url,
                 question,
-                response_object["data"]["answer"],df_text.iloc[0]['text'])
+                response_object["data"]["answer"],text_d)
                 )
 
     conn.commit()
