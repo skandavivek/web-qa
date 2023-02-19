@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 from web_qa2 import crawls, process, tokenize, answer_question
 from flask import Flask, request, session, render_template, jsonify
 from pandas import read_json
+import pandas as pd
 #from flask_sqlalchemy import SQLAlchemy
 #from flask_migrate import Migrate
 import psycopg2
@@ -117,6 +118,7 @@ def question():
         "answer": answer_question(df, question=question)
     }
 
+    df_text=pd.read_csv('processed/scraped.csv')
     conn = psycopg2.connect(
                 dbname=dbname,
                 user=user,
@@ -127,11 +129,11 @@ def question():
 
     # Open a cursor to perform database operations
     cur = conn.cursor()
-    cur.execute('INSERT INTO qa2 (link,question,answer)'
-                'VALUES (%s, %s, %s)',
+    cur.execute('INSERT INTO qa2 (link,question,answer,text_data)'
+                'VALUES (%s, %s, %s, %s)',
                 (full_url,
                 question,
-                response_object["data"]["answer"])
+                response_object["data"]["answer"],df_text.iloc[0]['text'])
                 )
 
     conn.commit()

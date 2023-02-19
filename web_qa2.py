@@ -202,7 +202,7 @@ def process(domain: str) -> pd.DataFrame:
 
             # Omit the first 11 lines and the last 4 lines, then replace -, _, and #update with spaces.
             texts.append(
-                (file[11:-4].replace('-', ' ').replace('_', ' ').replace('#update', ''), text))
+                (file.replace('-', ' ').replace('_', ' ').replace('#update', ''), text))
 
     # Create a dataframe from the list of texts
     df = pd.DataFrame(texts, columns=['fname', 'text'])
