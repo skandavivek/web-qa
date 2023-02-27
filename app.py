@@ -5,9 +5,11 @@ from web_qa2 import crawls, process, tokenize, answer_question
 from flask import Flask, request, session, render_template, jsonify
 from pandas import read_json
 import pandas as pd
+import uuid
 #from flask_sqlalchemy import SQLAlchemy
 #from flask_migrate import Migrate
 import psycopg2
+import json
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -22,6 +24,7 @@ port = url.port
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 app.secret_key = os.environ.get("SECRET_KEY")
+app.config['SESSION_COOKIE_MAX_SIZE'] = 20000
 
 logger = logging.getLogger(__name__)
 
@@ -71,8 +74,19 @@ def crawl_url():
 
     session[full_url] = domain + ".json"
 
+
+    if full_url.startswith('http'):
+        df_text = pd.read_csv('processed/scraped.csv', index_col=0)
+    else:
+        df_text=pd.DataFrame(['0',full_url]).T
+    df_text.columns = ['title', 'text']
+
+
     response_object["status"] = True
-    response_object["message"] = "Crawling and processing completed successfully"
+    response_object["message"] = "Crawling and processing completed successfully!"
+    if(len(df_text.iloc[0]['text'])<=100):
+        response_object["message"]+="\n\nWARNING: length of scraped text less than 100 characters!"
+
     response_object["data"] = {
         "df": df.to_json()
     }
@@ -93,8 +107,10 @@ def question():
 
     full_url = post_data.get("url")
     if not full_url:
-        response_object["message"] = "url is required"
+        response_object["message"] = "url or text is required"
         return jsonify(response_object), 200
+
+        
 
     question = post_data.get("question")
     if not question:
@@ -107,7 +123,7 @@ def question():
         file_name = session[full_url]
         with open(os.path.join("processed", file_name), "r") as f:
             df = read_json(f)
-
+ 
     else:
         response_object["message"] = "url not found"
         return jsonify(response_object), 200
@@ -144,4 +160,95 @@ def question():
     cur.close()
     conn.close()
 
+    return jsonify(response_object), 200
+
+
+
+@app.route('/qa877', methods=["POST"])
+def qa877():
+    response_object = {
+        "status": False,
+        "message": "Invalid payload"
+    }
+
+    post_data = request.get_json()
+    if not post_data:
+        return jsonify(response_object), 200
+
+    max_tokens = os.environ.get("MAX_TOKENS")
+    api_key = os.environ['OPENAI_KEYV']
+    
+    text = post_data.get("text")
+    query = post_data.get("query")
+    a_id = post_data.get("id")
+    if not query and not(text and a_id):
+        response_object["message"] = "query and text or article_id are required"
+        return jsonify(response_object), 200
+    
+    conn = psycopg2.connect(
+                dbname=dbname,
+                user=user,
+                password=password,
+                host=host,
+                port=port
+                )
+
+    if not a_id:
+        a_id=str(uuid.uuid4())
+
+
+
+
+
+        df = tokenize(text, api_key, int(max_tokens))
+
+
+        answer=answer_question(df, question=query)
+
+
+        # Open a cursor to perform database operations
+        cur = conn.cursor()
+        cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,df)'
+                    'VALUES (%s, %s, %s, %s, %s, %s)',
+                    (text,
+                    query,
+                    answer,[],a_id,json.dumps(df.to_json()))
+                    )
+
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
+    else:
+        cur = conn.cursor()
+        sql="""select df from qa2 where article_id = %s"""
+
+        cur.execute(sql,[a_id])
+        results = cur.fetchall()
+        df = pd.DataFrame.from_dict(json.loads(results[0][0]))
+        answer=answer_question(df, question=query)
+
+
+        cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id)'
+                'VALUES (%s, %s, %s, %s, %s)',
+                ([],
+                query,
+                answer,[],a_id)
+                )
+
+
+        conn.commit()
+
+        cur.close()
+        conn.close()        
+ 
+
+
+
+
+    # response_object["message"] = "works!"
+    response_object["status"] = True
+    response_object["answer"] = answer
+    response_object["id"] = a_id
     return jsonify(response_object), 200

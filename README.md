@@ -23,3 +23,10 @@ git add .
 git commit -m "initial commit"
 git remote add origin https://github.com/skandavivek/web-qa.git
 git push -u origin main
+
+
+## Things to improve:
+- urls not just starting from http (maybe best to separate URL from text)
+- possible issues with non standard string characters in free response
+- removing saving of files and instead directly accessing scraped file
+- session cookies can't read large text (can do upto 847 words, so not bad...)
