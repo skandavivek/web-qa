@@ -210,3 +210,13 @@ body {
   /* margin-top:0px;
   margin-left:470px; */
 }
+
+/* Add a card effect for articles */
+.card {
+  background-color: white;
+  padding: 20px;
+  margin-top: 20px;
+  justify-content: center;
+  text-align: center;
+
+}
