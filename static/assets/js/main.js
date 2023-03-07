@@ -1,5 +1,69 @@
 let previous_url = "";
 
+function validate_email(email) {
+  let value = email.trim();
+
+  if (value.length > 10 && value.includes("@") && value.includes(".")) {
+    return true;
+  }
+
+  return false;
+}
+
+$(document).ready(function () {
+  if (localStorage.getItem("user_id") == null) {
+    $("#myModal").modal("show");
+  }
+});
+
+$("#subscribe-form").submit(function (e) {
+  e.preventDefault();
+  $("#subscribe-btn").prop("disabled", true);
+  $("#email").prop("disabled", true);
+
+  let email = document.getElementById("email").value;
+  console.log(email);
+
+  let value = email.trim();
+
+  if (value.length < 1) {
+    alert("Please enter your email");
+    return;
+  }
+
+  if (!validate_email(value)) {
+    alert("Please enter a valid email");
+    return;
+  }
+
+  fetch("/subscribe", {
+    method: "post",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: value,
+    }),
+  })
+    .then((response) => response.json())
+    .then((json) => {
+      console.log("Response text: ", json);
+      user_id = json.data.user_id;
+      sessionStorage.setItem("user_id", user_id);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      $("#subscribe-btn").prop("disabled", true);
+      $("#email").prop("disabled", true);
+    })
+    .finally(() => {
+      $("#myModal").modal("hide");
+    });
+
+  return;
+});
+
 function validate_url(url) {
   let value = url.trim();
 

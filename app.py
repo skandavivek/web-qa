@@ -36,6 +36,55 @@ logger = logging.getLogger(__name__)
 def index():
     return render_template('index.html')
 
+@app.route('/subscribe', methods=["POST"])
+def register():
+    response_object = {
+        "status": False,
+        "message": "Invalid payload"
+    }
+
+    post_data = request.get_json()
+    if not post_data:
+        return jsonify(response_object), 200
+
+    email = post_data.get("email")
+
+    #try:
+    #     user = User.query.filter_by(email=email).first()
+    #     if not user:
+    #         user = User(email=email)
+    #         user.insert()
+
+    conn = psycopg2.connect(
+                dbname=dbname,
+                user=user,
+                password=password,
+                host=host,
+                port=port
+                )
+
+    # Open a cursor to perform database operations
+    cur = conn.cursor()
+    cur.execute('INSERT INTO accounts (email_id,details)'
+                'VALUES (%s, %s)',
+                (email,'')
+                )
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+
+    response_object["status"] = True
+    response_object["message"] = f"{email} was added!"
+    response_object["data"] = {
+        "email_id": email
+    }
+    return jsonify(response_object), 200
+
+    # except Exception as e:
+    #     response_object["message"] = "Try again"
+    #     return jsonify(response_object), 200
 
 @app.route('/crawl', methods=["POST"])
 def crawl_url():
