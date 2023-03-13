@@ -230,6 +230,7 @@ def qa877():
     text = post_data.get("text")
     query = post_data.get("query")
     a_id = post_data.get("id")
+    msg = post_data.get("mesg")
     if not query and not(text and a_id):
         response_object["message"] = "query and text or article_id are required"
         return jsonify(response_object), 200
@@ -251,17 +252,19 @@ def qa877():
 
         df = tokenize(text, api_key, int(max_tokens))
 
-
-        answer=answer_question(df, question=query)
+        if not msg:
+            answer,msg=answer_question2(df, question=query)
+        else:
+            answer,msg=answer_question2(df, question=query,mesg=msg)
 
 
         # Open a cursor to perform database operations
         cur = conn.cursor()
-        cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,df)'
-                    'VALUES (%s, %s, %s, %s, %s, %s)',
+        cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,df,message)'
+                    'VALUES (%s, %s, %s, %s, %s, %s, %s)',
                     (text,
                     query,
-                    answer,[],a_id,json.dumps(df.to_json()))
+                    answer,[],a_id,json.dumps(df.to_json()),json.dumps(msg))
                     )
 
         conn.commit()
@@ -276,14 +279,17 @@ def qa877():
         cur.execute(sql,[a_id])
         results = cur.fetchall()
         df = pd.DataFrame.from_dict(json.loads(results[0][0]))
-        answer=answer_question(df, question=query)
 
+        if not msg:
+            answer,msg=answer_question2(df, question=query)
+        else:
+            answer,msg=answer_question2(df, question=query,mesg=msg)
 
-        cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id)'
-                'VALUES (%s, %s, %s, %s, %s)',
+        cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,message)'
+                'VALUES (%s, %s, %s, %s, %s, %s)',
                 ([],
                 query,
-                answer,[],a_id)
+                answer,[],a_id,json.dumps(msg))
                 )
 
 
@@ -296,7 +302,7 @@ def qa877():
 
 
 
-    response_object["message"] = "Successful"
+    response_object["message"] = msg
     response_object["status"] = True
     response_object["answer"] = answer
     response_object["id"] = a_id

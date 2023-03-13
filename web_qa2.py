@@ -410,21 +410,66 @@ def answer_question(
         logger.error(e)
         return "Sorry, {}".format(str(e))
 
-################################################################################
-# Step 13
-################################################################################
+def answer_question2(
+    df: pd.DataFrame,
+    model: str = "text-davinci-003",
+    question: str = "Am I allowed to publish model outputs to Twitter, without a human review?",
+    mesg = {},
+    max_len: int = 1800,
+    size: str = "ada",
+    debug: bool = False,
+    max_tokens: int = 150,
+    stop_sequence: str = None
+):
+    """
+    Answer a question based on the most similar context from the dataframe texts
+    """
+    context = create_context(
+        question,
+        df,
+        max_len=max_len,
+        size=size,
+    )
+    # If debug, print the raw model response
+    if debug:
+        logger.info("Context:" + context)
+
+    try:
+        # Create a completions using the questin and context
+        # response = openai.Completion.create(
+        #     prompt=f"Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:"
+        #     temperature=0,
+        #     max_tokens=max_tokens,
+        #     top_p=1,
+        #     frequency_penalty=0,
+        #     presence_penalty=0,
+        #     stop=stop_sequence,
+        #     model=model,
+        # )
+        # return response["choices"][0]["text"].strip()
+        if(len(mesg)==0):
+            prompt=f"Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:"
 
 
-# if __name__ == "__main__":
-#     # Define root domain to crawl
-#     full_url = "https://skandavivek.com/"
-#     crawl(full_url)
+            response = openai.ChatCompletion.create(
+                            model="gpt-3.5-turbo",
+                            temperature=0,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            mesg=[{"role": "user", "content": prompt}]
+        else:
+            response = openai.ChatCompletion.create(
+                            model="gpt-3.5-turbo",
+                            temperature=0,
+                messages=mesg
+            )
 
-#     domain = urlparse(full_url).netloc
-#     process(domain)
+            
+        return response['choices'][0]["message"]["content"],mesg
 
-#     df = tokenize(500)
+    except Exception as e:
+        #logger.error(e)
+        return "Sorry, {}".format(str(e))
 
-#     print(answer_question(df, question="What day is it?", debug=True))
 
-#     print(answer_question(df, question="Who is Skanda?"))
+
