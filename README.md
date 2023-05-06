@@ -1,3 +1,7 @@
+## ChatGPT Powered Question Answering Over Documents 
+
+AnswerChatAI has a unique feature that allows it to find “needles in information haystacks”. The app can extract relevant information from large volumes of text, even if the answer is buried deep within the document. Users can ask specific questions, and AnswerChatAI will locate the answer using OpenAI embeddings.
+
 ## **_To run:_**
 
 ```bash
@@ -18,11 +22,11 @@ $ flask run
 ```
 
 ## git stuff:
-git init
-git add .
-git commit -m "initial commit"
-git remote add origin https://github.com/skandavivek/web-qa.git
-git push -u origin main
+- git init
+- git add .
+- git commit -m "initial commit"
+- git remote add origin https://github.com/skandavivek/web-qa.git
+- git push -u origin main
 
 
 ## Things to improve:
