@@ -290,9 +290,9 @@ def qa877():
         print(df.columns)
 
         if not msg:
-            answer,msg=answer_question2(df, question=query)
+            answer,msg=answer_question2(df, api_key, question=query)
         else:
-            answer,msg=answer_question2(df, question=query,mesg=msg)
+            answer,msg=answer_question2(df, api_key, question=query,mesg=msg)
 
         cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,message)'
                 'VALUES (%s, %s, %s, %s, %s, %s)',
