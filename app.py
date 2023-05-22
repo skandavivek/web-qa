@@ -253,9 +253,9 @@ def qa877():
         df = tokenize(text, api_key, int(max_tokens))
 
         if not msg:
-            answer,msg=answer_question2(df, question=query)
+            answer,msg=answer_question2(df, api_key, question=query)
         else:
-            answer,msg=answer_question2(df, question=query,mesg=msg)
+            answer,msg=answer_question2(df, api_key, question=query,mesg=msg)
 
 
         # Open a cursor to perform database operations
@@ -287,6 +287,7 @@ def qa877():
         #print(results[0][0])
         
         df = pd.DataFrame.from_dict(json.loads(results[0][0]))
+        print(df.columns)
 
         if not msg:
             answer,msg=answer_question2(df, question=query)
