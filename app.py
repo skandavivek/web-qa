@@ -282,11 +282,11 @@ def qa877():
         cur.execute(sql,[a_id])
         results = cur.fetchall()
         print("---------------------------------")
-        print(results)
+        #print(results)
         print("---------------------------------")
-        print(results[0])
+        #print(results[0][0])
         
-        df = pd.DataFrame.from_dict(json.loads(results[0]))
+        df = pd.DataFrame.from_dict(json.loads(results[0][0]))
 
         if not msg:
             answer,msg=answer_question2(df, question=query)
