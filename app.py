@@ -274,7 +274,7 @@ def qa877():
 
     else:
         cur = conn.cursor()
-        sql="""select df from qa2 where article_id = %s"""
+        sql="""select df from qa2 where article_id = %s order by created_at asc limit 1"""
         #I've checked for potential issues where you submit just an id without text, and hence 
         # for multiple rows for same  article id df is null.
         #However in these cases, the query just selects the non-null (unique) df value, so all good!
