@@ -242,77 +242,99 @@ def qa877():
                 host=host,
                 port=port
                 )
+    try:
 
-    if not a_id:
-        a_id=str(uuid.uuid4())
-
-
-
+        if not a_id:
+            a_id=str(uuid.uuid4())
 
 
-        df = tokenize(text, api_key, int(max_tokens))
 
-        if not msg:
-            answer,msg=answer_question2(df, api_key, question=query)
+
+
+            df = tokenize(text, api_key, int(max_tokens))
+
+            if not msg:
+                answer,msg=answer_question2(df, api_key, question=query)
+            else:
+                answer,msg=answer_question2(df, api_key, question=query,mesg=msg)
+
+
+            # Open a cursor to perform database operations
+            cur = conn.cursor()
+            cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,df,message)'
+                        'VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                        (text,
+                        query,
+                        answer,[],a_id,json.dumps(df.to_json()),json.dumps(msg))
+                        )
+
+            conn.commit()
+
+            cur.close()
+            conn.close()
+
         else:
-            answer,msg=answer_question2(df, api_key, question=query,mesg=msg)
+            cur = conn.cursor()
+            sql="""select df from qa2 where article_id = %s order by created_at asc limit 1"""
+            #I've checked for potential issues where you submit just an id without text, and hence 
+            # for multiple rows for same  article id df is null.
+            #However in these cases, the query just selects the non-null (unique) df value, so all good!
+            
+            cur.execute(sql,[a_id])
+            results = cur.fetchall()
+            print("---------------------------------")
+            #print(results)
+            print("---------------------------------")
+            #print(results[0][0])
+            
+            df = pd.DataFrame.from_dict(json.loads(results[0][0]))
+            print(df.columns)
 
+            if not msg:
+                answer,msg=answer_question2(df, api_key, question=query)
+            else:
+                answer,msg=answer_question2(df, api_key, question=query,mesg=msg)
 
-        # Open a cursor to perform database operations
-        cur = conn.cursor()
-        cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,df,message)'
-                    'VALUES (%s, %s, %s, %s, %s, %s, %s)',
-                    (text,
+            cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,message)'
+                    'VALUES (%s, %s, %s, %s, %s, %s)',
+                    ([],
                     query,
-                    answer,[],a_id,json.dumps(df.to_json()),json.dumps(msg))
+                    answer,[],a_id,json.dumps(msg))
                     )
 
-        conn.commit()
 
-        cur.close()
-        conn.close()
+            conn.commit()
 
-    else:
-        cur = conn.cursor()
-        sql="""select df from qa2 where article_id = %s order by created_at asc limit 1"""
-        #I've checked for potential issues where you submit just an id without text, and hence 
-        # for multiple rows for same  article id df is null.
-        #However in these cases, the query just selects the non-null (unique) df value, so all good!
-        
-        cur.execute(sql,[a_id])
-        results = cur.fetchall()
-        print("---------------------------------")
-        #print(results)
-        print("---------------------------------")
-        #print(results[0][0])
-        
-        df = pd.DataFrame.from_dict(json.loads(results[0][0]))
-        print(df.columns)
-
-        if not msg:
-            answer,msg=answer_question2(df, api_key, question=query)
-        else:
-            answer,msg=answer_question2(df, api_key, question=query,mesg=msg)
-
-        cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,message)'
-                'VALUES (%s, %s, %s, %s, %s, %s)',
-                ([],
-                query,
-                answer,[],a_id,json.dumps(msg))
-                )
-
-
-        conn.commit()
-
-        cur.close()
-        conn.close()        
- 
+            cur.close()
+            conn.close()        
+    
 
 
 
 
-    response_object["message"] = msg
-    response_object["status"] = True
-    response_object["answer"] = answer
-    response_object["id"] = a_id
-    return jsonify(response_object), 200
+        response_object["message"] = msg
+        response_object["status"] = True
+        response_object["answer"] = answer
+        response_object["id"] = a_id
+        return jsonify(response_object), 200
+    
+    except:
+            
+            cur = conn.cursor()
+            cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,df,message)'
+                        'VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                        ([],
+                        [],
+                        "error",[],[],[],[])
+                        )
+
+            conn.commit()
+
+            cur.close()
+            conn.close()
+
+            
+            response_object["answer"] = "There was an error, please try again."
+            return jsonify(response_object), 200
+    
+    
