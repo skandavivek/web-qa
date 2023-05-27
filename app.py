@@ -325,7 +325,7 @@ def qa877():
                         'VALUES (%s, %s, %s, %s, %s, %s)',
                         ([],
                         query,
-                        "error",text,a_id,json.dumps(msg))
+                        "error",[],[],json.dumps(msg))
                         )
 
             conn.commit()
