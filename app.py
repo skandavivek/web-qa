@@ -321,11 +321,11 @@ def qa877():
     except:
             
             cur = conn.cursor()
-            cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,df,message)'
-                        'VALUES (%s, %s, %s, %s, %s, %s, %s)',
+            cur.execute('INSERT INTO qa2 (link,question,answer,text_data,article_id,message)'
+                        'VALUES (%s, %s, %s, %s, %s, %s)',
                         ([],
-                        [],
-                        "error",[],[],[],[])
+                        query,
+                        "error",text,a_id,json.dumps(msg))
                         )
 
             conn.commit()
