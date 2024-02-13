@@ -8,6 +8,7 @@ import openai
 import logging
 import requests
 import tiktoken
+from scipy import spatial
 
 import urllib.request
 import numpy as np
@@ -17,7 +18,9 @@ from bs4 import BeautifulSoup
 from collections import deque
 from html.parser import HTMLParser
 from urllib.parse import urlparse
-from openai.embeddings_utils import distances_from_embeddings
+#from openai.embeddings_utils import distances_from_embeddings
+
+client = openai.OpenAI(api_key=os.environ['OPENAI_KEYV'])
 
 # from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
 
@@ -256,6 +259,10 @@ def split_into_many(text: str, tokenizer: tiktoken.Encoding, max_tokens: int = 1
     return chunks
 
 
+def get_embedding(text, model="text-embedding-ada-002"):
+    text = text.replace("\n", " ")
+    return client.embeddings.create(input = [text], model=model).data[0].embedding    
+
 def tokenize(full_url, api_key: str, max_tokens: int = 1024) -> pd.DataFrame:
     """ Function to split the text into chunks of a maximum number of tokens """
 
@@ -308,8 +315,10 @@ def tokenize(full_url, api_key: str, max_tokens: int = 1024) -> pd.DataFrame:
     ################################################################################
 
     openai.api_key = api_key
-    df['embeddings'] = df.text.apply(lambda x: openai.Embedding.create(
-        input=x, engine='text-embedding-ada-002')['data'][0]['embedding'])
+    # df['embeddings'] = df.text.apply(lambda x: openai.Embedding.create(
+    #     input=x, engine='text-embedding-ada-002')['data'][0]['embedding'])
+
+    df['embeddings'] = df.text.apply(lambda x: get_embedding(x))
     df.to_csv('processed/embeddings.csv')
     # df.head()
 
@@ -338,9 +347,7 @@ def create_context(question: str, df: pd.DataFrame, max_len: int = 1800, size: s
         input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
 
     # Get the distances from the embeddings
-    df['distances'] = distances_from_embeddings(
-        q_embeddings, df['embeddings'].values, distance_metric='cosine')
-
+    df['distances'] = df['embeddings'].apply(lambda x: spatial.distance.cosine(q_embeddings,x))
     returns = []
     cur_len = 0
 
@@ -367,12 +374,12 @@ def create_context2(question: str, api_key: str, df: pd.DataFrame, max_len: int 
 
     # Get the embeddings for the question
     openai.api_key = api_key
-    q_embeddings = openai.Embedding.create(
-        input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
+    # q_embeddings = openai.Embedding.create(
+    #     input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
+    q_embeddings = get_embedding(question)
 
     # Get the distances from the embeddings
-    df['distances'] = distances_from_embeddings(
-        q_embeddings, df['embeddings'].values, distance_metric='cosine')
+    df['distances'] = df['embeddings'].apply(lambda x: spatial.distance.cosine(q_embeddings,x))
 
     returns = []
     cur_len = 0
@@ -433,11 +440,17 @@ def answer_question(
         prompt=f"Answer the question. Context: {context}\n Question: {question}"
 
 
-        response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return response['choices'][0]["message"]["content"]
+        # response = openai.ChatCompletion.create(
+        #                 model="gpt-3.5-turbo",
+        #     messages=[{"role": "user", "content": prompt}]
+        # )
+
+        response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0, # this is the degree of randomness of the model's output
+    )
+        return response.choices[0].message.content
 
     except Exception as e:
         logger.error(e)
@@ -485,21 +498,35 @@ def answer_question2(
         if(len(mesg)==0):
             prompt=f"Answer the question. Context: {context}\n Question: {question}"
 
-            response = openai.ChatCompletion.create(
-                            model="gpt-3.5-turbo",
-                            temperature=0,
-                messages=[{"role": "user", "content": prompt}]
-            )
+            # response = openai.ChatCompletion.create(
+            #                 model="gpt-3.5-turbo",
+            #                 temperature=0,
+            #     messages=[{"role": "user", "content": prompt}]
+            # )
+
+            response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0, # this is the degree of randomness of the model's output
+        )
+
+
             mesg=[{"role": "user", "content": prompt}]
         else:
-            response = openai.ChatCompletion.create(
-                            model="gpt-3.5-turbo",
-                            temperature=0,
-                messages=mesg
-            )
+            # response = openai.ChatCompletion.create(
+            #                 model="gpt-3.5-turbo",
+            #                 temperature=0,
+            #     messages=mesg
+            # )
 
+
+            response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=mesg,
+            temperature=0, # this is the degree of randomness of the model's output
+        )
             
-        return response['choices'][0]["message"]["content"],mesg
+        return response.choices[0].message.content,mesg
 
     except Exception as e:
         #logger.error(e)
