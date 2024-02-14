@@ -343,8 +343,7 @@ def create_context(question: str, df: pd.DataFrame, max_len: int = 1800, size: s
     """
 
     # Get the embeddings for the question
-    q_embeddings = openai.Embedding.create(
-        input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
+    q_embeddings = get_embedding(question)
 
     # Get the distances from the embeddings
     df['distances'] = df['embeddings'].apply(lambda x: spatial.distance.cosine(q_embeddings,x))
