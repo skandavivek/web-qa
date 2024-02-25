@@ -437,8 +437,14 @@ def answer_question(
         #     model=model,
         # )
         # return response["choices"][0]["text"].strip()
-        prompt=f"Answer the question. Context: {context}\n Question: {question}"
+        prompt = f"""Answer the question based on the context provided.
 
+        Question:
+        ```{question}.```
+
+        Context:
+        ```{context}```
+        """
 
         # response = openai.ChatCompletion.create(
         #                 model="gpt-3.5-turbo",
@@ -496,7 +502,14 @@ def answer_question2(
         # )
         # return response["choices"][0]["text"].strip()
         if(len(mesg)==0):
-            prompt=f"Answer the question. Context: {context}\n Question: {question}"
+            prompt = f"""Answer the question based on the context provided.
+
+            Question:
+            ```{question}.```
+
+            Context:
+            ```{context}```
+            """
 
             # response = openai.ChatCompletion.create(
             #                 model="gpt-3.5-turbo",
